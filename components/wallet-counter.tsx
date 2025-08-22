@@ -174,6 +174,9 @@ export function WalletCounter() {
               </Button>
             </div>
           </div>
+          <p className="text-xs text-muted-foreground mt-3">
+            These stats are currently experimental. Information is provided "as is".
+          </p>
         </CardContent>
       </Card>
     </div>
