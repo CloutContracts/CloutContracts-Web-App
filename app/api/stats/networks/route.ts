@@ -26,13 +26,16 @@ export async function GET() {
   try {
     const networks: NetworkStats[] = []
 
+    const etherscanApiKey = process.env.ETHERSCAN_API_KEY || "YourApiKeyToken"
+    const bscscanApiKey = process.env.BSCSCAN_API_KEY || "YourApiKeyToken"
+
     // Main Net (Ethereum) - Using exact API URLs provided
     try {
       console.log("[v0] Fetching Main Net stats")
 
       // Get token transactions
       const tokenResponse = await fetch(
-        "https://api.etherscan.io/api?module=account&action=txlist&address=0x1da4858ad385cc377165a298cc2ce3fce0c5fd31&startblock=0&endblock=99999999&sort=asc&apikey=YourApiKeyToken",
+        `https://api.etherscan.io/api?module=account&action=txlist&address=0x1da4858ad385cc377165a298cc2ce3fce0c5fd31&startblock=0&endblock=99999999&sort=asc&apikey=${etherscanApiKey}`,
       )
       const tokenData = await tokenResponse.json()
       console.log("[v0] Main Net Token API Response:", tokenData.status || tokenData.message)
@@ -45,7 +48,7 @@ export async function GET() {
 
       // Get rollup transactions
       const rollupResponse = await fetch(
-        "https://api.etherscan.io/api?module=account&action=txlist&address=0x2C7716BDf98e181df4CF1b40aD7648A40EE813b9&startblock=0&endblock=99999999&sort=asc&apikey=YourApiKeyToken",
+        `https://api.etherscan.io/api?module=account&action=txlist&address=0x2C7716BDf98e181df4CF1b40aD7648A40EE813b9&startblock=0&endblock=99999999&sort=asc&apikey=${etherscanApiKey}`,
       )
       const rollupData = await rollupResponse.json()
       console.log("[v0] Main Net Rollup API Response:", rollupData.status || rollupData.message)
@@ -141,7 +144,7 @@ export async function GET() {
 
       // Get token transactions
       const tokenResponse = await fetch(
-        "https://api.bscscan.com/api?module=account&action=txlist&address=0x3e3B357061103DC040759aC7DceEaba9901043aD&startblock=1&endblock=99999999&sort=asc&apikey=YourApiKeyToken",
+        `https://api.bscscan.com/api?module=account&action=txlist&address=0x3e3B357061103DC040759aC7DceEaba9901043aD&startblock=1&endblock=99999999&sort=asc&apikey=${bscscanApiKey}`,
       )
       const tokenData = await tokenResponse.json()
       console.log("[v0] BNB Token API Response:", tokenData.status || tokenData.message)
@@ -153,7 +156,7 @@ export async function GET() {
 
       // Get rollup transactions
       const rollupResponse = await fetch(
-        "https://api.bscscan.com/api?module=account&action=txlist&address=0xABa46894aCaB62A47Ff28c0a69e6333B80425dA5&startblock=1&endblock=99999999&sort=asc&apikey=YourApiKeyToken",
+        `https://api.bscscan.com/api?module=account&action=txlist&address=0xABa46894aCaB62A47Ff28c0a69e6333B80425dA5&startblock=1&endblock=99999999&sort=asc&apikey=${bscscanApiKey}`,
       )
       const rollupData = await rollupResponse.json()
       console.log("[v0] BNB Rollup API Response:", rollupData.status || rollupData.message)

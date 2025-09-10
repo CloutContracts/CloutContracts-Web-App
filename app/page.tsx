@@ -20,15 +20,19 @@ import {
   BarChart3,
   Newspaper,
   Settings,
+  HardDrive,
+  Network,
 } from "lucide-react"
 import { AuthButtons, useAuth } from "@/components/auth-provider"
-import { EVMInterface } from "@/components/evm-interface"
+import { SolidityIDE } from "@/components/solidity-ide"
 import { MiningDashboard } from "@/components/mining-dashboard"
 import { AppDeployment } from "@/components/app-deployment"
 import { TokenManagement } from "@/components/token-management"
 import { BlockExplorer } from "@/components/block-explorer"
 import { WalletCounter } from "@/components/wallet-counter"
 import { NetworkStatsViewer } from "@/components/network-stats-viewer"
+import { DataShardManager } from "@/components/data-shard-manager"
+import { OfflineManager } from "@/components/offline-manager"
 import Image from "next/image"
 import { useState, useEffect } from "react"
 
@@ -39,7 +43,7 @@ declare global {
 }
 
 export default function CloutContractsApp() {
-  const { account, isConnected, isAdmin } = useAuth()
+  const { account, isConnected, isAdmin, isOffline } = useAuth()
   const [circulatingSupply, setCirculatingSupply] = useState<string>("Loading...")
 
   useEffect(() => {
@@ -78,7 +82,7 @@ export default function CloutContractsApp() {
               </div>
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
-                  <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent [&:not(:has(.bg-clip-text))]:text-foreground">
                     CloutContracts
                   </span>
                 </h1>
@@ -155,8 +159,10 @@ export default function CloutContractsApp() {
           <div className="text-center space-y-12 sm:space-y-16">
             <div className="space-y-4 sm:space-y-6 max-w-4xl mx-auto">
               <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight">
-                <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">Clout</span>
-                <span className="tech-accent">Contracts</span>
+                <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent [&:not(:has(.bg-clip-text))]:text-foreground">
+                  Clout
+                </span>
+                <span className="text-foreground">Contracts</span>
               </h2>
               <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4">
                 The smart contracts platform for influencers and creators, built on a high-speed rollup layer that
@@ -194,6 +200,69 @@ export default function CloutContractsApp() {
                 Multi-Chain Network Overview
               </h3>
               <NetworkStatsViewer />
+            </div>
+
+            <div className="max-w-4xl mx-auto">
+              <div className="professional-card p-6 sm:p-8">
+                <div className="text-center space-y-4 sm:space-y-6">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-accent/10 rounded-lg flex items-center justify-center mx-auto">
+                    <Cpu className="w-6 h-6 sm:w-8 sm:h-8 text-accent" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xl sm:text-2xl font-semibold">Solidity IDE</h3>
+                    <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
+                      Write, compile, and deploy smart contracts directly in your browser. Our integrated development
+                      environment supports Solidity with syntax highlighting, real-time compilation, and MetaMask
+                      integration.
+                    </p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+                    <Button
+                      variant="default"
+                      size="lg"
+                      className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                      onClick={() => {
+                        const ideSection = document.querySelector('[data-state="active"][value="evm"]')
+                        if (ideSection) {
+                          ideSection.scrollIntoView({ behavior: "smooth" })
+                        }
+                      }}
+                    >
+                      <Cpu className="w-4 h-4 mr-2" />
+                      Try IDE (Connect Wallet)
+                    </Button>
+                    <Button variant="outline" size="lg" asChild>
+                      <a href="https://github.com/CloutContracts/" target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        View Source
+                      </a>
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+                    <div className="text-center space-y-2">
+                      <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center mx-auto">
+                        <Zap className="w-4 h-4 text-primary" />
+                      </div>
+                      <p className="text-sm font-medium">Real-time Compilation</p>
+                      <p className="text-xs text-muted-foreground">Instant feedback as you code</p>
+                    </div>
+                    <div className="text-center space-y-2">
+                      <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center mx-auto">
+                        <Shield className="w-4 h-4 text-accent" />
+                      </div>
+                      <p className="text-sm font-medium">MetaMask Integration</p>
+                      <p className="text-xs text-muted-foreground">Deploy directly to CloutContracts</p>
+                    </div>
+                    <div className="text-center space-y-2">
+                      <div className="w-8 h-8 bg-secondary/10 rounded-lg flex items-center justify-center mx-auto">
+                        <Database className="w-4 h-4 text-secondary" />
+                      </div>
+                      <p className="text-sm font-medium">Template Library</p>
+                      <p className="text-xs text-muted-foreground">ERC20, ERC721, and more</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="max-w-4xl mx-auto">
@@ -282,7 +351,7 @@ export default function CloutContractsApp() {
 
             <div className="professional-card p-8 sm:p-12 max-w-5xl mx-auto">
               <h3 className="text-2xl sm:text-3xl font-bold mb-8 sm:mb-12 text-center">
-                <span className="tech-accent">CCS Token Ecosystem</span>
+                <span className="text-foreground">CCS Token Ecosystem</span>
               </h3>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 sm:gap-8">
@@ -400,6 +469,7 @@ export default function CloutContractsApp() {
                 <p className="text-muted-foreground text-base sm:text-lg">
                   Welcome back, {account?.slice(0, 6)}...{account?.slice(-4)}
                   {isAdmin && <span className="text-accent ml-2 font-semibold">• Admin Access</span>}
+                  {isOffline && <span className="text-yellow-600 ml-2 font-semibold">• Offline Mode</span>}
                 </p>
               </div>
               <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
@@ -413,18 +483,26 @@ export default function CloutContractsApp() {
                   <Database className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                   Connected
                 </Badge>
+                {isOffline && (
+                  <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 text-xs">
+                    <HardDrive className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                    Offline
+                  </Badge>
+                )}
               </div>
             </div>
 
             <Tabs defaultValue="overview" className="space-y-6 sm:space-y-8">
-              <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 bg-card border border-border p-1 rounded-lg">
+              <TabsList className="grid w-full grid-cols-4 sm:grid-cols-8 bg-card border border-border p-1 rounded-lg">
                 {[
                   { value: "overview", label: "Overview" },
-                  { value: "evm", label: "EVM" },
+                  { value: "evm", label: "IDE" },
                   { value: "mining", label: "Mining" },
                   { value: "tokens", label: "Tokens" },
                   { value: "explorer", label: "Explorer" },
                   { value: "deploy", label: "Deploy" },
+                  { value: "shards", label: "Shards" },
+                  { value: "offline", label: "Offline" },
                 ].map((tab) => (
                   <TabsTrigger
                     key={tab.value}
@@ -473,6 +551,19 @@ export default function CloutContractsApp() {
                       <p className="text-xs text-muted-foreground">Distributed mining active</p>
                     </CardContent>
                   </Card>
+
+                  <Card className="professional-card">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 sm:p-6">
+                      <CardTitle className="text-xs sm:text-sm font-medium uppercase tracking-wider">
+                        Distributed Network
+                      </CardTitle>
+                      <Network className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
+                    </CardHeader>
+                    <CardContent className="p-4 sm:p-6 pt-0">
+                      <div className="text-2xl sm:text-3xl font-bold text-green-500">3 Nodes</div>
+                      <p className="text-xs text-muted-foreground">BOINC computing ready</p>
+                    </CardContent>
+                  </Card>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -492,7 +583,7 @@ export default function CloutContractsApp() {
               </TabsContent>
 
               <TabsContent value="evm">
-                <EVMInterface />
+                <SolidityIDE />
               </TabsContent>
 
               <TabsContent value="mining">
@@ -509,6 +600,14 @@ export default function CloutContractsApp() {
 
               <TabsContent value="deploy">
                 <AppDeployment />
+              </TabsContent>
+
+              <TabsContent value="shards">
+                <DataShardManager />
+              </TabsContent>
+
+              <TabsContent value="offline">
+                <OfflineManager />
               </TabsContent>
             </Tabs>
           </div>
@@ -557,7 +656,7 @@ export default function CloutContractsApp() {
             <p className="text-xs sm:text-sm text-muted-foreground">
               © Copyright 2025 CloutContracts - All Rights Reserved
             </p>
-            <p className="text-xs text-muted-foreground px-4">
+            <p className="text-xs sm:text-sm text-muted-foreground px-4">
               Please consider this experimental. We aren't soliciting financial advice. Any actions you decide to do are
               fully at your own risk.
             </p>

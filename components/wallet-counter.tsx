@@ -95,8 +95,10 @@ export function WalletCounter() {
     <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
       {isMockData && (
         <div className="md:col-span-2 lg:col-span-4 mb-4">
-          <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
-            <p className="text-amber-500 text-sm font-medium">*Dune API Missing, this is MOCK data</p>
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 dark:bg-amber-950/50 dark:border-amber-800">
+            <p className="text-amber-600 dark:text-amber-400 text-sm font-medium">
+              *Dune API Missing, this is MOCK data
+            </p>
           </div>
         </div>
       )}
@@ -157,12 +159,18 @@ export function WalletCounter() {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Badge variant="outline" className="bg-primary/10 border-primary/30 text-primary">
+              <Badge
+                variant="outline"
+                className="bg-primary/10 border-primary/30 text-primary dark:text-primary-foreground"
+              >
                 <Activity className="w-3 h-3 mr-1" />
                 {isMockData ? "Mock Data (Dune API Missing)" : "Live Data from Dune Analytics"}
               </Badge>
               {stats.error && (
-                <Badge variant="outline" className="bg-amber-500/10 border-amber-500/30 text-amber-500">
+                <Badge
+                  variant="outline"
+                  className="bg-amber-50 border-amber-200 text-amber-600 dark:bg-amber-950/50 dark:border-amber-800 dark:text-amber-400"
+                >
                   {stats.error}
                 </Badge>
               )}

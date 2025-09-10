@@ -4,7 +4,7 @@ export async function GET(request: NextRequest) {
   try {
     console.log("[v0] Wallet stats API called")
 
-    const duneApiKey = "DUNEAPIKEY" // testkey
+    const duneApiKey = process.env.DUNE_API_KEY
     const queryId = "2335579" // CloutContracts dashboard query ID
 
     console.log("[v0] Dune API Key present:", !!duneApiKey)

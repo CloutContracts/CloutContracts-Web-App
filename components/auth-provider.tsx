@@ -5,20 +5,36 @@ import type React from "react"
 import { useState, useEffect, createContext, useContext } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Wallet, LogOut, Shield, Zap } from "lucide-react"
+import { Wallet, LogOut, Shield, Zap, WifiOff } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { cacheDB } from "@/lib/cache-db"
 
 const ADMIN_ADDRESS = "0x0D81d9E21BD7C5bB095535624DcB0759E64B3899"
 const TOKEN_OWNER_ADDRESS = "0x0D81d9E21BD7C5bB095535624DcB0759E64B3899"
+
+const CLOUT_CONTRACTS_NETWORK = {
+  chainId: "0x539", // 1337 in hex
+  chainName: "CloutContracts Network",
+  nativeCurrency: {
+    name: "CloutContracts",
+    symbol: "CCS",
+    decimals: 18,
+  },
+  rpcUrls: ["https://evm.cloutcontracts.net"],
+  blockExplorerUrls: ["https://explorer.cloutcontracts.net"],
+}
 
 interface AuthContextType {
   account: string | null
   isConnected: boolean
   isAdmin: boolean
   authMethod: "metamask" | "bitbadges" | null
+  isOffline: boolean
   connectMetaMask: () => Promise<void>
   connectBitBadges: () => Promise<void>
   disconnect: () => void
+  deployContract: (bytecode: string, constructorArgs?: any[]) => Promise<string>
+  sendTransaction: (to: string, data: string, value?: string) => Promise<string>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -38,83 +54,107 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isConnected, setIsConnected] = useState(false)
   const [authMethod, setAuthMethod] = useState<"metamask" | "bitbadges" | null>(null)
   const [showComingSoon, setShowComingSoon] = useState(false)
+  const [isOffline, setIsOffline] = useState(false)
   const { toast } = useToast()
 
   const isAdmin = account?.toLowerCase() === ADMIN_ADDRESS.toLowerCase()
 
   useEffect(() => {
     checkConnection()
-  }, [])
+
+    const handleOnline = () => {
+      setIsOffline(false)
+      // Restore cached auth state when coming back online
+      const cachedAuth = cacheDB.getOfflineData("auth-state")
+      if (cachedAuth && cachedAuth.account) {
+        setAccount(cachedAuth.account)
+        setIsConnected(cachedAuth.isConnected)
+        setAuthMethod(cachedAuth.authMethod)
+      }
+    }
+
+    const handleOffline = () => {
+      setIsOffline(true)
+      // Cache current auth state for offline use
+      if (account) {
+        cacheDB.setOfflineData("auth-state", {
+          account,
+          isConnected,
+          authMethod,
+        })
+      }
+    }
+
+    // Set initial offline state
+    setIsOffline(!navigator.onLine)
+
+    // Listen for online/offline events
+    window.addEventListener("online", handleOnline)
+    window.addEventListener("offline", handleOffline)
+
+    // Listen for account changes
+    if (typeof window.ethereum !== "undefined") {
+      window.ethereum.on("accountsChanged", handleAccountsChanged)
+      window.ethereum.on("chainChanged", handleChainChanged)
+    }
+
+    return () => {
+      window.removeEventListener("online", handleOnline)
+      window.removeEventListener("offline", handleOffline)
+      if (typeof window.ethereum !== "undefined") {
+        window.ethereum.removeListener("accountsChanged", handleAccountsChanged)
+        window.ethereum.removeListener("chainChanged", handleChainChanged)
+      }
+    }
+  }, [account, isConnected, authMethod])
+
+  const handleAccountsChanged = (accounts: string[]) => {
+    if (accounts.length === 0) {
+      disconnect()
+    } else if (accounts[0] !== account) {
+      setAccount(accounts[0])
+      cacheDB.setOfflineData("auth-state", {
+        account: accounts[0],
+        isConnected: true,
+        authMethod,
+      })
+      toast({
+        title: "Account changed",
+        description: `Switched to ${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`,
+      })
+    }
+  }
+
+  const handleChainChanged = (chainId: string) => {
+    // Reload the page when chain changes to avoid state issues
+    window.location.reload()
+  }
 
   const checkConnection = async () => {
     if (typeof window.ethereum !== "undefined") {
       try {
         const accounts = await window.ethereum.request({ method: "eth_accounts" })
         if (accounts.length > 0) {
-          await verifyAuthentication(accounts[0], "metamask")
+          const chainId = await window.ethereum.request({ method: "eth_chainId" })
+          if (chainId === CLOUT_CONTRACTS_NETWORK.chainId) {
+            setAccount(accounts[0])
+            setIsConnected(true)
+            setAuthMethod("metamask")
+          }
         }
       } catch (error) {
         console.error("Error checking connection:", error)
+        const cachedAuth = cacheDB.getOfflineData("auth-state")
+        if (cachedAuth && cachedAuth.account) {
+          setAccount(cachedAuth.account)
+          setIsConnected(cachedAuth.isConnected)
+          setAuthMethod(cachedAuth.authMethod)
+        }
       }
-    }
-  }
-
-  const verifyAuthentication = async (address: string, method: "metamask" | "bitbadges") => {
-    try {
-      console.log("[v0] Starting authentication verification for:", address, method)
-      const message = `Sign this message to authenticate with CloutContracts: ${Date.now()}`
-      let signature = ""
-
-      if (method === "metamask" && window.ethereum) {
-        console.log("[v0] Requesting signature from MetaMask")
-        signature = await window.ethereum.request({
-          method: "personal_sign",
-          params: [message, address],
-        })
-        console.log("[v0] Signature received:", signature.slice(0, 10) + "...")
-      }
-
-      console.log("[v0] Sending verification request to API")
-      const response = await fetch("/api/auth/verify", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          address,
-          signature,
-          message,
-        }),
-      })
-
-      const result = await response.json()
-      console.log("[v0] API response:", result)
-
-      if (response.ok && result.success) {
-        console.log("[v0] Authentication successful")
-        setAccount(address)
-        setIsConnected(true)
-        setAuthMethod(method)
-        return true
-      } else {
-        throw new Error(result.error || "Authentication failed")
-      }
-    } catch (error: any) {
-      console.error("[v0] Authentication error:", error)
-      return false
     }
   }
 
   const connectMetaMask = async () => {
-    console.log("[v0] MetaMask button clicked - showing coming soon message")
-
-    setShowComingSoon(true)
-
-    console.log("[v0] Coming soon modal should now be visible")
-    return
-
-    // Original connection code commented out for demo
-    /*
     if (typeof window.ethereum === "undefined") {
       console.log("[v0] MetaMask not detected")
       toast({
@@ -126,6 +166,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     try {
+      console.log("[v0] Adding CloutContracts network to MetaMask")
+
+      // Add CloutContracts network to MetaMask
+      try {
+        await window.ethereum.request({
+          method: "wallet_addEthereumChain",
+          params: [CLOUT_CONTRACTS_NETWORK],
+        })
+      } catch (addError: any) {
+        // Network might already exist, try to switch to it
+        if (addError.code === 4902) {
+          await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: CLOUT_CONTRACTS_NETWORK.chainId }],
+          })
+        } else {
+          throw addError
+        }
+      }
+
       console.log("[v0] Requesting MetaMask accounts")
       const accounts = await window.ethereum.request({
         method: "eth_requestAccounts",
@@ -133,89 +193,193 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.log("[v0] Accounts received:", accounts)
 
       if (accounts.length > 0) {
-        console.log("[v0] Attempting to verify authentication")
-        const success = await verifyAuthentication(accounts[0], "metamask")
+        setAccount(accounts[0])
+        setIsConnected(true)
+        setAuthMethod("metamask")
 
-        if (success) {
-          const isAdminUser = accounts[0].toLowerCase() === ADMIN_ADDRESS.toLowerCase()
-          console.log("[v0] Connection successful, isAdmin:", isAdminUser)
+        cacheDB.setOfflineData("auth-state", {
+          account: accounts[0],
+          isConnected: true,
+          authMethod: "metamask",
+        })
 
-          toast({
-            title: "Wallet connected",
-            description: `Connected as ${isAdminUser ? "Admin" : "User"}: ${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`,
-          })
-        } else {
-          console.log("[v0] Authentication verification failed")
-          toast({
-            title: "Authentication failed",
-            description: "Failed to verify wallet signature",
-            variant: "destructive",
-          })
-        }
+        const isAdminUser = accounts[0].toLowerCase() === ADMIN_ADDRESS.toLowerCase()
+        console.log("[v0] Connection successful, isAdmin:", isAdminUser)
+
+        toast({
+          title: "Wallet connected",
+          description: `Connected to CloutContracts Network: ${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`,
+        })
       }
     } catch (error: any) {
       console.error("[v0] Error connecting wallet:", error)
       toast({
         title: "Connection failed",
-        description: error.message || "Failed to connect wallet",
+        description: error.message || "Failed to connect to CloutContracts Network",
         variant: "destructive",
       })
     }
-    */
   }
 
   const connectBitBadges = async () => {
     console.log("[v0] BitBadges button clicked - showing coming soon message")
-
     setShowComingSoon(true)
-
     console.log("[v0] Coming soon modal should now be visible")
     return
+  }
 
-    // Original connection code commented out for demo
-    /*
-    try {
-      const badgeId = "clout-contracts-access" // This would be configured
-
-      const response = await fetch("/api/auth/bitbadges", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          badgeId,
-          address: account, // This would come from BitBadges SDK
-        }),
-      })
-
-      const result = await response.json()
-
-      if (response.ok && result.success) {
-        setAccount(result.address)
-        setIsConnected(true)
-        setAuthMethod("bitbadges")
-
-        toast({
-          title: "BitBadges connected",
-          description: `Connected via BitBadges: ${result.address.slice(0, 6)}...${result.address.slice(-4)}`,
-        })
-      } else {
-        throw new Error(result.error || "BitBadges authentication failed")
-      }
-    } catch (error: any) {
-      toast({
-        title: "BitBadges connection failed",
-        description: error.message || "Failed to connect with BitBadges",
-        variant: "destructive",
-      })
+  const deployContract = async (bytecode: string, constructorArgs: any[] = []): Promise<string> => {
+    if (!account || authMethod !== "metamask") {
+      throw new Error("MetaMask not connected")
     }
-    */
+
+    if (typeof window.ethereum === "undefined") {
+      throw new Error("MetaMask not available")
+    }
+
+    try {
+      console.log("[v0] Deploying contract via MetaMask")
+
+      // Ensure we're on the correct network
+      const chainId = await window.ethereum.request({ method: "eth_chainId" })
+      if (chainId !== CLOUT_CONTRACTS_NETWORK.chainId) {
+        await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: CLOUT_CONTRACTS_NETWORK.chainId }],
+        })
+      }
+
+      // Estimate gas for deployment
+      const gasEstimate = await window.ethereum.request({
+        method: "eth_estimateGas",
+        params: [
+          {
+            from: account,
+            data: bytecode,
+          },
+        ],
+      })
+
+      // Send deployment transaction
+      const txHash = await window.ethereum.request({
+        method: "eth_sendTransaction",
+        params: [
+          {
+            from: account,
+            data: bytecode,
+            gas: gasEstimate,
+          },
+        ],
+      })
+
+      console.log("[v0] Deployment transaction sent:", txHash)
+
+      // Wait for transaction receipt to get contract address
+      let receipt = null
+      let attempts = 0
+      const maxAttempts = 30
+
+      while (!receipt && attempts < maxAttempts) {
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+        try {
+          receipt = await window.ethereum.request({
+            method: "eth_getTransactionReceipt",
+            params: [txHash],
+          })
+        } catch (error) {
+          console.log("[v0] Waiting for transaction receipt...")
+        }
+        attempts++
+      }
+
+      if (!receipt) {
+        throw new Error("Transaction receipt not found after 60 seconds")
+      }
+
+      if (receipt.status === "0x0") {
+        throw new Error("Transaction failed")
+      }
+
+      console.log("[v0] Contract deployed at:", receipt.contractAddress)
+
+      cacheDB.cacheDeployment(
+        bytecode.slice(0, 32), // Use first 32 chars as hash
+        receipt.contractAddress,
+        txHash,
+      )
+
+      return receipt.contractAddress
+    } catch (error: any) {
+      console.error("[v0] Contract deployment error:", error)
+      throw new Error(`Deployment failed: ${error.message}`)
+    }
+  }
+
+  const sendTransaction = async (to: string, data: string, value = "0x0"): Promise<string> => {
+    if (!account || authMethod !== "metamask") {
+      throw new Error("MetaMask not connected")
+    }
+
+    if (typeof window.ethereum === "undefined") {
+      throw new Error("MetaMask not available")
+    }
+
+    try {
+      console.log("[v0] Sending transaction via MetaMask")
+
+      // Ensure we're on the correct network
+      const chainId = await window.ethereum.request({ method: "eth_chainId" })
+      if (chainId !== CLOUT_CONTRACTS_NETWORK.chainId) {
+        await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: CLOUT_CONTRACTS_NETWORK.chainId }],
+        })
+      }
+
+      // Estimate gas
+      const gasEstimate = await window.ethereum.request({
+        method: "eth_estimateGas",
+        params: [
+          {
+            from: account,
+            to,
+            data,
+            value,
+          },
+        ],
+      })
+
+      // Send transaction
+      const txHash = await window.ethereum.request({
+        method: "eth_sendTransaction",
+        params: [
+          {
+            from: account,
+            to,
+            data,
+            value,
+            gas: gasEstimate,
+          },
+        ],
+      })
+
+      console.log("[v0] Transaction sent:", txHash)
+      return txHash
+    } catch (error: any) {
+      console.error("[v0] Transaction error:", error)
+      throw new Error(`Transaction failed: ${error.message}`)
+    }
   }
 
   const disconnect = () => {
     setAccount(null)
     setIsConnected(false)
     setAuthMethod(null)
+
+    if (typeof localStorage !== "undefined") {
+      localStorage.removeItem("cachedb:auth-state")
+    }
+
     toast({
       title: "Disconnected",
       description: "Successfully disconnected from wallet",
@@ -229,9 +393,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         isConnected,
         isAdmin,
         authMethod,
+        isOffline,
         connectMetaMask,
         connectBitBadges,
         disconnect,
+        deployContract,
+        sendTransaction,
       }}
     >
       {children}
@@ -257,11 +424,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
 }
 
 export function AuthButtons() {
-  const { account, isConnected, isAdmin, authMethod, connectMetaMask, connectBitBadges, disconnect } = useAuth()
+  const { account, isConnected, isAdmin, authMethod, isOffline, connectMetaMask, connectBitBadges, disconnect } =
+    useAuth()
 
   if (isConnected && account) {
     return (
       <div className="flex items-center justify-center gap-2 sm:gap-3">
+        {isOffline && (
+          <Badge
+            variant="secondary"
+            className="bg-yellow-50 text-yellow-700 border-yellow-200 px-2 sm:px-3 py-1 text-xs"
+          >
+            <WifiOff className="w-3 h-3 mr-1 sm:mr-1.5" />
+            Offline
+          </Badge>
+        )}
         {isAdmin && (
           <Badge variant="secondary" className="bg-accent/10 text-accent border-accent/20 px-2 sm:px-3 py-1 text-xs">
             <Shield className="w-3 h-3 mr-1 sm:mr-1.5" />

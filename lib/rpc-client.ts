@@ -3,7 +3,7 @@ export class CloutContractsRPC {
   private apiKey: string
 
   constructor() {
-    this.rpcUrl = process.env.NEXT_PUBLIC_CLOUT_CONTRACTS_RPC || "https://rpc.cloutcontracts.network"
+    this.rpcUrl = process.env.NEXT_PUBLIC_CLOUT_CONTRACTS_RPC || "https://evm.cloutcontracts.net"
     this.apiKey = process.env.CLOUT_CONTRACTS_API_KEY || ""
   }
 

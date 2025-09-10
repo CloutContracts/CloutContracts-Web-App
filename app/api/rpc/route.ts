@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 // CloutContracts RPC Configuration
-const CLOUT_CONTRACTS_RPC_URL = process.env.CLOUT_CONTRACTS_RPC_URL || "https://rpc.cloutcontracts.network"
+const CLOUT_CONTRACTS_RPC_URL = process.env.CLOUT_CONTRACTS_RPC_URL || "https://evm.cloutcontracts.net"
 const CHAIN_ID = 1337 // CloutContracts chain ID
 
 export async function POST(request: NextRequest) {
@@ -34,7 +34,7 @@ export async function GET() {
     chainId: CHAIN_ID,
     networkName: "CloutContracts",
     rpcUrl: CLOUT_CONTRACTS_RPC_URL,
-    blockExplorer: "https://explorer.cloutcontracts.network",
+    blockExplorer: "https://explorer.cloutcontracts.net",
     nativeCurrency: {
       name: "CloutContracts",
       symbol: "CCS",
