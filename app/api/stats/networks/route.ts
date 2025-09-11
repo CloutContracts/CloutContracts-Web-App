@@ -29,31 +29,31 @@ export async function GET() {
     const etherscanApiKey = process.env.ETHERSCAN_API_KEY || "YourApiKeyToken"
     const bscscanApiKey = process.env.BSCSCAN_API_KEY || "YourApiKeyToken"
 
-    // Main Net (Ethereum) - Using exact API URLs provided
-    try {
-      console.log("[v0] Fetching Main Net stats")
+    console.log("[v0] Etherscan API Key present:", !!etherscanApiKey)
+    console.log("[v0] BSCScan API Key present:", !!bscscanApiKey)
 
-      // Get token transactions
+    // Main Net (Ethereum) - Using Etherscan API only
+    try {
+      console.log("[v0] Fetching Main Net stats using Etherscan API")
+
       const tokenResponse = await fetch(
         `https://api.etherscan.io/api?module=account&action=txlist&address=0x1da4858ad385cc377165a298cc2ce3fce0c5fd31&startblock=0&endblock=99999999&sort=asc&apikey=${etherscanApiKey}`,
       )
       const tokenData = await tokenResponse.json()
       console.log("[v0] Main Net Token API Response:", tokenData.status || tokenData.message)
 
-      // Check if API returned error due to invalid API key
-      const tokenApiKeyInvalid = tokenData.status === "0" || tokenData.message === "NOTOK"
-      if (tokenApiKeyInvalid) {
-        console.log("[v0] Main Net Token API failed - likely invalid API key")
-      }
-
-      // Get rollup transactions
       const rollupResponse = await fetch(
         `https://api.etherscan.io/api?module=account&action=txlist&address=0x2C7716BDf98e181df4CF1b40aD7648A40EE813b9&startblock=0&endblock=99999999&sort=asc&apikey=${etherscanApiKey}`,
       )
       const rollupData = await rollupResponse.json()
       console.log("[v0] Main Net Rollup API Response:", rollupData.status || rollupData.message)
 
+      const tokenApiKeyInvalid = tokenData.status === "0" || tokenData.message === "NOTOK"
       const rollupApiKeyInvalid = rollupData.status === "0" || rollupData.message === "NOTOK"
+
+      if (tokenApiKeyInvalid) {
+        console.log("[v0] Main Net Token API failed - likely invalid API key")
+      }
       if (rollupApiKeyInvalid) {
         console.log("[v0] Main Net Rollup API failed - likely invalid API key")
       }
@@ -72,7 +72,7 @@ export async function GET() {
         tokenAddress: "0x1da4858ad385cc377165a298cc2ce3fce0c5fd31",
         rollupAddress: "0x2C7716BDf98e181df4CF1b40aD7648A40EE813b9",
         lastUpdated: new Date().toISOString(),
-        error: totalTxCount === "N/A" ? "API key required for Etherscan" : undefined,
+        error: totalTxCount === "N/A" ? "Etherscan API key required for live data" : undefined,
       })
       console.log("[v0] Main Net stats - Total:", totalTxCount)
     } catch (error) {
@@ -85,7 +85,7 @@ export async function GET() {
         tokenAddress: "0x1da4858ad385cc377165a298cc2ce3fce0c5fd31",
         rollupAddress: "0x2C7716BDf98e181df4CF1b40aD7648A40EE813b9",
         lastUpdated: new Date().toISOString(),
-        error: "Failed to fetch data - API key required",
+        error: "Etherscan API key required for live data",
       })
     }
 

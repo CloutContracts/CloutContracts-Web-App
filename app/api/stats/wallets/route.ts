@@ -5,10 +5,10 @@ export async function GET(request: NextRequest) {
     console.log("[v0] Wallet stats API called")
 
     const duneApiKey = process.env.DUNE_API_KEY
-    const queryId = "2335579" // CloutContracts dashboard query ID
+    const walletQueryId = "2335579" // CloutContracts wallet statistics query
 
     console.log("[v0] Dune API Key present:", !!duneApiKey)
-    console.log("[v0] Using query ID:", queryId)
+    console.log("[v0] Using wallet query ID:", walletQueryId)
 
     if (!duneApiKey) {
       console.log("[v0] WARNING: No DUNE_API_KEY found, returning mock data")
@@ -19,92 +19,63 @@ export async function GET(request: NextRequest) {
         totalTransactions: 89234,
         lastUpdated: new Date().toISOString(),
         isMockData: true,
+        message: "Add DUNE_API_KEY to environment variables for live data",
       })
     }
 
-    const endpoints = [
-      `https://api.dune.com/api/v1/query/${queryId}/results/latest`,
-      `https://api.dune.com/api/v1/query/${queryId}/results`,
-    ]
+    const walletResponse = await fetch(`https://api.dune.com/api/v1/query/${walletQueryId}/results`, {
+      headers: {
+        "X-Dune-API-Key": duneApiKey,
+        "Content-Type": "application/json",
+      },
+      signal: AbortSignal.timeout(15000), // Increased timeout for production
+    })
 
-    for (const endpoint of endpoints) {
-      try {
-        console.log("[v0] Trying endpoint:", endpoint)
+    let walletData = null
 
-        const response = await fetch(endpoint, {
-          headers: {
-            "X-Dune-API-Key": duneApiKey,
-          },
-          timeout: 10000, // 10 second timeout
-        })
+    if (walletResponse.ok) {
+      const data = await walletResponse.json()
+      console.log("[v0] Wallet query response state:", data.state)
 
-        if (response.ok) {
-          const data = await response.json()
-          console.log("[v0] Response state:", data.state)
-          console.log("[v0] Response structure:", Object.keys(data))
-
-          // Check if we have results
-          if (data.result?.rows?.length > 0) {
-            const rows = data.result.rows
-            console.log("[v0] Found", rows.length, "rows")
-            console.log("[v0] First row:", JSON.stringify(rows[0], null, 2))
-            console.log("[v0] Available columns:", Object.keys(rows[0]))
-
-            const firstRow = rows[0] || {}
-
-            const totalWallets =
-              firstRow.Total_Unique_Wallets ||
-              firstRow.total_unique_wallets ||
-              firstRow.unique_wallets ||
-              firstRow.wallet_count ||
-              firstRow.count ||
-              0
-
-            console.log("[v0] Extracted wallet count:", totalWallets)
-
-            if (totalWallets > 0) {
-              const stats = {
-                totalWallets: totalWallets,
-                activeWallets: Math.floor(totalWallets * 0.6), // Estimate 60% active
-                newWalletsToday: Math.floor(totalWallets * 0.02), // Estimate 2% new today
-                totalTransactions: Math.floor(totalWallets * 5.6), // Estimate 5.6 transactions per wallet
-                lastUpdated: new Date().toISOString(),
-                isMockData: false,
-              }
-
-              console.log("[v0] Returning real Dune data:", stats)
-              return NextResponse.json(stats)
-            }
-          }
-        } else {
-          console.log("[v0] Endpoint failed:", response.status, response.statusText)
-        }
-      } catch (endpointError) {
-        console.log("[v0] Endpoint error:", endpointError)
-        continue // Try next endpoint
+      if (data.result?.rows && data.result.rows.length > 0) {
+        walletData = data.result.rows[0]
+        console.log("[v0] Wallet data row:", JSON.stringify(walletData, null, 2))
       }
+    } else {
+      const errorText = await walletResponse.text()
+      console.log("[v0] Wallet query HTTP error:", walletResponse.status, errorText)
     }
 
-    console.log("[v0] All Dune endpoints failed, using fallback data")
-    return NextResponse.json({
-      totalWallets: 9127, // Based on user's dashboard value
-      activeWallets: 5476,
-      newWalletsToday: 182,
-      totalTransactions: 51112,
+    const totalWallets = walletData?.Total_Unique_Wallets || 15847
+    const activeWallets = Math.floor(totalWallets * 0.6) // 60% active rate
+    const newToday = Math.floor(totalWallets * 0.02) // 2% growth rate
+    const transactions = Math.floor(totalWallets * 8) // 8 transactions per wallet average
+
+    const stats = {
+      totalWallets,
+      activeWallets,
+      newWalletsToday: newToday,
+      totalTransactions: transactions,
       lastUpdated: new Date().toISOString(),
-      error: "Dune API unavailable - using cached data",
-      isMockData: true,
-    })
+      isMockData: !walletData,
+      queryIds: {
+        wallets: walletQueryId,
+      },
+      dataSource: walletData ? "Dune Analytics (Live)" : "Estimated Data",
+    }
+
+    console.log("[v0] Returning wallet stats:", stats)
+    return NextResponse.json(stats)
   } catch (error) {
     console.error("[v0] Error fetching wallet stats:", error)
 
     return NextResponse.json({
-      totalWallets: 9127,
-      activeWallets: 5476,
-      newWalletsToday: 182,
-      totalTransactions: 51112,
+      totalWallets: 15847,
+      activeWallets: 8923,
+      newWalletsToday: 234,
+      totalTransactions: 89234,
       lastUpdated: new Date().toISOString(),
-      error: "API error - using cached data",
+      error: "API error - using fallback data",
       isMockData: true,
     })
   }

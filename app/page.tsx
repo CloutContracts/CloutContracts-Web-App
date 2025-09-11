@@ -222,17 +222,28 @@ export default function CloutContractsApp() {
                       size="lg"
                       className="bg-accent hover:bg-accent/90 text-accent-foreground"
                       onClick={() => {
-                        const ideSection = document.querySelector('[data-state="active"][value="evm"]')
-                        if (ideSection) {
-                          ideSection.scrollIntoView({ behavior: "smooth" })
+                        const connectSection = document.querySelector("#connect-wallet-section")
+                        if (!isConnected && connectSection) {
+                          connectSection.scrollIntoView({ behavior: "smooth" })
+                        } else if (isConnected) {
+                          const evmTab = document.querySelector('[value="evm"]')
+                          if (evmTab) {
+                            ;(evmTab as HTMLElement).click()
+                            setTimeout(() => {
+                              const ideSection = document.querySelector('[data-state="active"][value="evm"]')
+                              if (ideSection) {
+                                ideSection.scrollIntoView({ behavior: "smooth" })
+                              }
+                            }, 100)
+                          }
                         }
                       }}
                     >
                       <Cpu className="w-4 h-4 mr-2" />
-                      Try IDE (Connect Wallet)
+                      {isConnected ? "Open IDE" : "Try IDE (Connect Wallet)"}
                     </Button>
                     <Button variant="outline" size="lg" asChild>
-                      <a href="https://github.com/CloutContracts/" target="_blank" rel="noopener noreferrer">
+                      <a href="https://github.com/CloutContracts" target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="w-4 h-4 mr-2" />
                         View Source
                       </a>
@@ -258,7 +269,7 @@ export default function CloutContractsApp() {
                         <Database className="w-4 h-4 text-secondary" />
                       </div>
                       <p className="text-sm font-medium">Template Library</p>
-                      <p className="text-xs text-muted-foreground">ERC20, ERC721, and more</p>
+                      <p className="text-xs text-foreground/70">ERC20, ERC721, and more</p>
                     </div>
                   </div>
                 </div>
@@ -452,7 +463,7 @@ export default function CloutContractsApp() {
             </div>
 
             <div className="professional-card p-8 sm:p-12 max-w-md mx-auto">
-              <div className="text-center space-y-4 sm:space-y-6">
+              <div id="connect-wallet-section" className="text-center space-y-4 sm:space-y-6">
                 <div className="space-y-2">
                   <h3 className="text-xl sm:text-2xl font-semibold">Connect Wallet</h3>
                   <p className="text-sm sm:text-base text-muted-foreground">Access the CloutContracts platform</p>

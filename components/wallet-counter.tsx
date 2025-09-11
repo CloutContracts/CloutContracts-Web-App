@@ -161,7 +161,7 @@ export function WalletCounter() {
             <div className="flex items-center gap-4">
               <Badge
                 variant="outline"
-                className="bg-primary/10 border-primary/30 text-primary dark:text-primary-foreground"
+                className="bg-primary/20 border-primary/30 text-slate-800 dark:text-primary-foreground"
               >
                 <Activity className="w-3 h-3 mr-1" />
                 {isMockData ? "Mock Data (Dune API Missing)" : "Live Data from Dune Analytics"}
