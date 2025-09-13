@@ -137,7 +137,7 @@ export function NetworkStatsViewer() {
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <Card className="border-primary/20 bg-card/40 holographic glow-effect">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium uppercase tracking-wider">Total Networks</CardTitle>
@@ -164,7 +164,7 @@ export function NetworkStatsViewer() {
           </CardContent>
         </Card>
 
-        <Card className="border-secondary/20 bg-card/40 holographic glow-effect">
+        <Card className="border-secondary/20 bg-card/40 holographic glow-effect sm:col-span-2 lg:col-span-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium uppercase tracking-wider">Last Updated</CardTitle>
             <RefreshCw className={`h-5 w-5 text-secondary neon-glow ${refreshing ? "animate-spin" : ""}`} />
@@ -196,14 +196,14 @@ export function NetworkStatsViewer() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="mainnet" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-muted/20">
-              <TabsTrigger value="mainnet" className="data-[state=active]:bg-primary/20">
+            <TabsList className="grid w-full grid-cols-3 bg-muted/20 h-auto">
+              <TabsTrigger value="mainnet" className="data-[state=active]:bg-primary/20 text-xs sm:text-sm py-2">
                 Main Net
               </TabsTrigger>
-              <TabsTrigger value="etc" className="data-[state=active]:bg-primary/20">
+              <TabsTrigger value="etc" className="data-[state=active]:bg-primary/20 text-xs sm:text-sm py-2">
                 ETC Peg
               </TabsTrigger>
-              <TabsTrigger value="bnb" className="data-[state=active]:bg-primary/20">
+              <TabsTrigger value="bnb" className="data-[state=active]:bg-primary/20 text-xs sm:text-sm py-2">
                 BNB Peg
               </TabsTrigger>
             </TabsList>
@@ -218,18 +218,25 @@ export function NetworkStatsViewer() {
                   <div className="flex items-center gap-3">
                     {getChainIcon(network.chainId)}
                     <div>
-                      <h3 className="font-semibold text-lg">{network.name}</h3>
+                      <h3 className="font-semibold text-base sm:text-lg">{network.name}</h3>
                       <p className="text-sm text-muted-foreground">Chain ID: {network.chainId}</p>
                     </div>
                   </div>
                   {network.error && (
-                    <Badge variant="outline" className="bg-amber-500/10 border-amber-500/30 text-amber-500">
-                      {network.error}
-                    </Badge>
+                    <div className="w-full max-w-full overflow-hidden">
+                      <Badge
+                        variant="outline"
+                        className="bg-amber-500/10 border-amber-500/30 text-amber-500 text-xs w-full max-w-full"
+                      >
+                        <span className="block w-full overflow-hidden text-ellipsis whitespace-nowrap">
+                          {network.error}
+                        </span>
+                      </Badge>
+                    </div>
                   )}
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   <Card className="border-muted/20 bg-muted/5">
                     <CardHeader className="pb-3">
                       <CardTitle className="text-sm flex items-center justify-between">
@@ -245,7 +252,9 @@ export function NetworkStatsViewer() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-0">
-                      <p className="text-xs font-mono text-muted-foreground break-all">{network.tokenAddress}</p>
+                      <p className="text-xs font-mono text-muted-foreground break-all overflow-hidden text-ellipsis">
+                        {network.tokenAddress}
+                      </p>
                       <div className="mt-2">
                         <Badge variant="outline" className="text-xs">
                           <Activity className="w-3 h-3 mr-1" />
@@ -270,7 +279,9 @@ export function NetworkStatsViewer() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-0">
-                      <p className="text-xs font-mono text-muted-foreground break-all">{network.rollupAddress}</p>
+                      <p className="text-xs font-mono text-muted-foreground break-all overflow-hidden text-ellipsis">
+                        {network.rollupAddress}
+                      </p>
                       <div className="mt-2">
                         <Badge variant="outline" className="text-xs">
                           <TrendingUp className="w-3 h-3 mr-1" />

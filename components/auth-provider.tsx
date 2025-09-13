@@ -429,31 +429,28 @@ export function AuthButtons() {
 
   if (isConnected && account) {
     return (
-      <div className="flex items-center justify-center gap-2 sm:gap-3">
+      <div className="flex items-center justify-center gap-1 sm:gap-2">
         {isOffline && (
-          <Badge
-            variant="secondary"
-            className="bg-yellow-50 text-yellow-700 border-yellow-200 px-2 sm:px-3 py-1 text-xs"
-          >
-            <WifiOff className="w-3 h-3 mr-1 sm:mr-1.5" />
-            Offline
+          <Badge variant="secondary" className="bg-yellow-50 text-yellow-700 border-yellow-200 px-2 py-1 text-xs">
+            <WifiOff className="w-3 h-3 mr-1" />
+            <span className="hidden sm:inline">Offline</span>
           </Badge>
         )}
         {isAdmin && (
-          <Badge variant="secondary" className="bg-accent/10 text-accent border-accent/20 px-2 sm:px-3 py-1 text-xs">
-            <Shield className="w-3 h-3 mr-1 sm:mr-1.5" />
-            Admin
+          <Badge variant="secondary" className="bg-accent/10 text-accent border-accent/20 px-2 py-1 text-xs">
+            <Shield className="w-3 h-3 mr-1" />
+            <span className="hidden sm:inline">Admin</span>
           </Badge>
         )}
-        <Badge variant="outline" className="bg-card/30 border-border/30 px-2 sm:px-3 py-1 text-xs">
-          <Wallet className="w-3 h-3 mr-1 sm:mr-1.5" />
-          {account.slice(0, 6)}...{account.slice(-4)}
+        <Badge variant="outline" className="bg-card/30 border-border/30 px-2 py-1 text-xs">
+          <Wallet className="w-3 h-3 mr-1" />
+          {account.slice(0, 4)}...{account.slice(-2)}
         </Badge>
         <Button
           variant="ghost"
           size="sm"
           onClick={disconnect}
-          className="text-muted-foreground hover:text-foreground h-8 px-2 sm:px-3"
+          className="text-muted-foreground hover:text-foreground h-8 px-2"
         >
           <LogOut className="w-4 h-4" />
         </Button>
@@ -462,21 +459,23 @@ export function AuthButtons() {
   }
 
   return (
-    <div className="flex items-center justify-center gap-2 sm:gap-3">
+    <div className="flex items-center justify-center gap-1 sm:gap-2">
       <Button
         onClick={connectMetaMask}
-        className="bg-foreground text-background hover:bg-foreground/90 border-0 px-4 sm:px-6 py-2 h-9 sm:h-10 font-medium text-sm"
+        className="bg-slate-900 text-white hover:bg-slate-800 border-0 px-3 sm:px-4 py-2 h-8 sm:h-9 font-medium text-xs sm:text-sm"
       >
-        <Wallet className="w-4 h-4 mr-1 sm:mr-2" />
-        MetaMask
+        <Wallet className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+        <span className="hidden xs:inline sm:inline">MetaMask</span>
+        <span className="xs:hidden sm:hidden">MM</span>
       </Button>
       <Button
         onClick={connectBitBadges}
         variant="outline"
-        className="border-border/50 text-foreground hover:bg-muted/50 bg-transparent px-4 sm:px-6 py-2 h-9 sm:h-10 font-medium text-sm"
+        className="border-border/50 text-foreground hover:bg-muted/50 bg-transparent px-3 sm:px-4 py-2 h-8 sm:h-9 font-medium text-xs sm:text-sm"
       >
-        <Zap className="w-4 h-4 mr-1 sm:mr-2" />
-        BitBadges
+        <Zap className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+        <span className="hidden xs:inline sm:inline">BitBadges</span>
+        <span className="xs:hidden sm:hidden">BB</span>
       </Button>
     </div>
   )
