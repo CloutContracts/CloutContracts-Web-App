@@ -214,7 +214,35 @@ export default function CloutContractsApp() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 sm:py-12">
+      <a
+        href="https://netcapital.com/companies/starkdrones"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block w-full"
+      >
+        <div className="w-full bg-gradient-to-b from-background via-background/50 to-background py-6 sm:py-8 mt-4 sm:mt-6">
+          <div className="container mx-auto px-4">
+            <div className="max-w-[614px] mx-auto rounded-xl overflow-hidden border-2 border-cyan-500/40 shadow-[0_0_20px_rgba(6,182,212,0.25),0_0_40px_rgba(6,182,212,0.15)] hover:shadow-[0_0_30px_rgba(6,182,212,0.35),0_0_60px_rgba(6,182,212,0.2)] hover:border-cyan-400/50 transition-all duration-300">
+              <Image
+                src="/riemann-banner.jpg"
+                alt="Own a Piece of Riemann Computing via Equity Crowdfunding"
+                width={700}
+                height={225}
+                className="w-full h-auto"
+                style={{
+                  imageRendering: "crisp-edges",
+                  WebkitFontSmoothing: "antialiased",
+                }}
+                quality={100}
+                priority
+                unoptimized
+              />
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <main className="container mx-auto px-4 py-4 sm:py-6">
         <div className="text-center space-y-12 sm:space-y-16">
           <div className="space-y-4 sm:space-y-6 max-w-4xl mx-auto">
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight">
@@ -377,13 +405,17 @@ export default function CloutContractsApp() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
               {[
                 { name: "Node", href: "https://github.com/CloutContracts/CloutContracts", color: "primary" },
-                { name: "Faucet", href: "https://cloutcontracts.net/faucet", color: "accent" },
+                { name: "Faucet", href: "https://distributednet.org/faucet", color: "accent" },
                 { name: "Main EVM", href: "https://github.com/CloutContracts/Main-EVM", color: "secondary" },
-                { name: "Side EVM", href: "https://cloutcontracts.net/side-evm", color: "emerald-500" },
-                { name: "Staking", href: "https://cloutcontracts.net/staking", color: "purple-500" },
+                { name: "Side EVM", href: "https://github.com/CloutContracts/side-evm", color: "emerald-500" },
+                { name: "Staking", href: "https://distributednet.org/staking", color: "purple-500" },
                 { name: "CloutSwap", href: "https://github.com/CloutContracts/CloutSwap", color: "orange-500" },
-                { name: "Blockchain Explorer", href: "https://cloutcontracts.net/explorer", color: "blue-500" },
-                { name: "CCS DAO v2", href: "https://cloutcontracts.net/dao", color: "pink-500" },
+                { name: "Blockchain Explorer", href: "https://distributednet.org/explorer", color: "blue-500" },
+                {
+                  name: "CCS DAO v2",
+                  href: "https://polygonscan.com/token/0xe346502D3BB39262EE2d9D2C52c7aE7C1f98E7e8",
+                  color: "pink-500",
+                },
               ].map((app) => (
                 <Card key={app.name} className="professional-card text-center">
                   <CardHeader className="p-4">
@@ -517,7 +549,7 @@ export default function CloutContractsApp() {
         </div>
       </main>
 
-      <footer className="border-t border-border bg-card/30 backdrop-blur-sm mt-16 sm:mt-20">
+      <footer className="border-t border-border bg-card/30 backdrop-blur-sm mt-4 sm:mt-6">
         <div className="container mx-auto px-4 py-8 sm:py-12">
           <div className="flex flex-col items-center justify-between gap-6 sm:gap-8">
             <div className="flex items-center gap-3 sm:gap-4">
@@ -537,7 +569,7 @@ export default function CloutContractsApp() {
             <div className="flex items-center gap-4 sm:gap-8 flex-wrap justify-center">
               {[
                 { name: "GitHub", href: "https://github.com/CloutContracts" },
-                { name: "Twitter", href: "https://twitter.com/CloutContracts" },
+                { name: "Twitter", href: "https://twitter.com/_CloutContracts" },
                 { name: "Discord", href: "https://discord.gg/cloutcontracts" },
                 { name: "Telegram", href: "https://t.me/cloutcontracts" },
                 { name: "Statistics", href: "https://dune.com/cloutcontracts/dashboard" },
