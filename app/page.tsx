@@ -215,7 +215,7 @@ export default function CloutContractsApp() {
       </header>
 
       <a
-        href="https://netcapital.com/companies/starkdrones"
+        href="https://wefunder.com/riecomp"
         target="_blank"
         rel="noopener noreferrer"
         className="block w-full"
