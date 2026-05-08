@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { NewsletterForm } from "@/components/newsletter-form"
-import { Users, BarChart3, Mail, Settings } from "lucide-react"
+import { Users, BarChart3, Mail, Settings, ArrowDownUp } from "lucide-react"
 import Image from "next/image"
 
 export default function NewsletterPage() {
@@ -31,7 +31,7 @@ export default function NewsletterPage() {
 
             <nav className="hidden xl:flex items-center gap-6 lg:gap-8">
               <a
-                href="https://discord.gg/cloutcontracts"
+                href="https://discord.gg/nuNTfQXBN6"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 text-sm"
@@ -63,13 +63,20 @@ export default function NewsletterPage() {
                 <Mail className="w-4 h-4" />
                 Newsletter
               </Link>
-              <a
+              <Link
+                href="/bridge"
+                className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 text-sm"
+              >
+                <ArrowDownUp className="w-4 h-4" />
+                Bridge
+              </Link>
+              <Link
                 href="/#applications"
                 className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 text-sm"
               >
                 <Settings className="w-4 h-4" />
                 Apps
-              </a>
+              </Link>
             </nav>
 
             <div className="flex items-center gap-2 sm:gap-4">
@@ -119,7 +126,7 @@ export default function NewsletterPage() {
               {[
                 { name: "GitHub", href: "https://github.com/CloutContracts" },
                 { name: "Twitter", href: "https://twitter.com/CloutContracts" },
-                { name: "Discord", href: "https://discord.gg/cloutcontracts" },
+                { name: "Discord", href: "https://discord.gg/nuNTfQXBN6" },
                 { name: "Telegram", href: "https://t.me/cloutcontracts" },
                 { name: "Statistics", href: "https://dune.com/cloutcontracts/dashboard" },
               ].map((link) => (
@@ -138,7 +145,7 @@ export default function NewsletterPage() {
 
           <div className="border-t border-border mt-6 sm:mt-8 pt-6 sm:pt-8 text-center space-y-3 sm:space-y-4">
             <p className="text-xs sm:text-sm text-muted-foreground">
-              © Copyright 2025 CloutContracts - All Rights Reserved
+              © Copyright 2026 CloutContracts - All Rights Reserved
             </p>
             <p className="text-xs sm:text-sm text-muted-foreground px-4">
               Please consider this experimental. We aren't soliciting financial advice. Any actions you decide to do are

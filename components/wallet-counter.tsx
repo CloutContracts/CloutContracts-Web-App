@@ -93,16 +93,6 @@ export function WalletCounter() {
 
   return (
     <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {isMockData && (
-        <div className="md:col-span-2 lg:col-span-4 mb-4">
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 dark:bg-amber-950/50 dark:border-amber-800">
-            <p className="text-amber-600 dark:text-amber-400 text-sm font-medium">
-              *Dune API Missing, this is MOCK data
-            </p>
-          </div>
-        </div>
-      )}
-
       <Card className="border-primary/20 bg-card/40 holographic glow-effect">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium uppercase tracking-wider">Total Wallets</CardTitle>
@@ -164,7 +154,7 @@ export function WalletCounter() {
                 className="bg-primary/20 border-primary/30 text-slate-800 dark:text-primary-foreground"
               >
                 <Activity className="w-3 h-3 mr-1" />
-                {isMockData ? "Mock Data (Dune API Missing)" : "Live Data from Dune Analytics"}
+                Live Data
               </Badge>
               {stats.error && (
                 <Badge

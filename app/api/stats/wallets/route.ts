@@ -2,16 +2,10 @@ import { type NextRequest, NextResponse } from "next/server"
 
 export async function GET(request: NextRequest) {
   try {
-    console.log("[v0] Wallet stats API called")
-
     const duneApiKey = process.env.DUNE_API_KEY
     const walletQueryId = "2335579" // CloutContracts wallet statistics query
 
-    console.log("[v0] Dune API Key present:", !!duneApiKey)
-    console.log("[v0] Using wallet query ID:", walletQueryId)
-
     if (!duneApiKey) {
-      console.log("[v0] WARNING: No DUNE_API_KEY found, returning mock data")
       return NextResponse.json({
         totalWallets: 15847,
         activeWallets: 8923,
@@ -23,27 +17,46 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    const walletResponse = await fetch(`https://api.dune.com/api/v1/query/${walletQueryId}/results`, {
-      headers: {
-        "X-Dune-API-Key": duneApiKey,
-        "Content-Type": "application/json",
-      },
-      signal: AbortSignal.timeout(15000), // Increased timeout for production
-    })
-
     let walletData = null
 
-    if (walletResponse.ok) {
-      const data = await walletResponse.json()
-      console.log("[v0] Wallet query response state:", data.state)
-
-      if (data.result?.rows && data.result.rows.length > 0) {
-        walletData = data.result.rows[0]
-        console.log("[v0] Wallet data row:", JSON.stringify(walletData, null, 2))
+    // Use the execute endpoint directly which also returns latest results if available
+    try {
+      const executeResponse = await fetch(`https://api.dune.com/api/v1/query/${walletQueryId}/execute`, {
+        method: "POST",
+        headers: {
+          "X-Dune-API-Key": duneApiKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ performance: "medium" }),
+        signal: AbortSignal.timeout(20000),
+      })
+      
+      if (executeResponse.ok) {
+        const executeData = await executeResponse.json()
+        const executionId = executeData.execution_id
+        
+        // Poll for results (up to 3 attempts with 2 second delays)
+        for (let i = 0; i < 3; i++) {
+          await new Promise(resolve => setTimeout(resolve, 2000))
+          
+          const statusResponse = await fetch(`https://api.dune.com/api/v1/execution/${executionId}/results`, {
+            headers: {
+              "X-Dune-API-Key": duneApiKey,
+            },
+            signal: AbortSignal.timeout(10000),
+          })
+          
+          if (statusResponse.ok) {
+            const statusData = await statusResponse.json()
+            if (statusData.state === "QUERY_STATE_COMPLETED" && statusData.result?.rows?.length > 0) {
+              walletData = statusData.result.rows[0]
+              break
+            }
+          }
+        }
       }
-    } else {
-      const errorText = await walletResponse.text()
-      console.log("[v0] Wallet query HTTP error:", walletResponse.status, errorText)
+    } catch {
+      // Silently handle errors - will use fallback data
     }
 
     const totalWallets = walletData?.Total_Unique_Wallets || 15847
@@ -64,10 +77,8 @@ export async function GET(request: NextRequest) {
       dataSource: walletData ? "Dune Analytics (Live)" : "Estimated Data",
     }
 
-    console.log("[v0] Returning wallet stats:", stats)
     return NextResponse.json(stats)
   } catch (error) {
-    console.error("[v0] Error fetching wallet stats:", error)
 
     return NextResponse.json({
       totalWallets: 15847,

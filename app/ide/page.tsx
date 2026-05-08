@@ -38,7 +38,7 @@ export default function IDEPage() {
 
             <nav className="hidden xl:flex items-center gap-6 lg:gap-8">
               <a
-                href="https://discord.gg/cloutcontracts"
+                href="https://discord.gg/nuNTfQXBN6"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 text-sm"
@@ -109,7 +109,7 @@ export default function IDEPage() {
             <div className="xl:hidden mt-4 pb-4 border-t border-border">
               <nav className="flex flex-col gap-3 pt-4">
                 <a
-                  href="https://discord.gg/cloutcontracts"
+                  href="https://discord.gg/nuNTfQXBN6"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 text-sm py-2"
@@ -189,7 +189,7 @@ export default function IDEPage() {
               {[
                 { name: "GitHub", href: "https://github.com/CloutContracts" },
                 { name: "Twitter", href: "https://twitter.com/CloutContracts" },
-                { name: "Discord", href: "https://discord.gg/cloutcontracts" },
+                { name: "Discord", href: "https://discord.gg/nuNTfQXBN6" },
                 { name: "Telegram", href: "https://t.me/cloutcontracts" },
                 { name: "Statistics", href: "https://dune.com/cloutcontracts/dashboard" },
               ].map((link) => (
@@ -208,7 +208,7 @@ export default function IDEPage() {
 
           <div className="border-t border-border mt-6 sm:mt-8 pt-6 sm:pt-8 text-center space-y-3 sm:space-y-4">
             <p className="text-xs sm:text-sm text-muted-foreground">
-              © Copyright 2025 CloutContracts - All Rights Reserved
+              © Copyright 2026 CloutContracts - All Rights Reserved
             </p>
             <p className="text-xs sm:text-sm text-muted-foreground px-4">
               Please consider this experimental. We aren't soliciting financial advice. Any actions you decide to do are

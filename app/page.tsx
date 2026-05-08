@@ -18,9 +18,10 @@ import {
   BarChart3,
   Settings,
   Mail,
+  ArrowDownUp,
 } from "lucide-react"
 import { AuthButtons, useAuth } from "@/components/auth-provider"
-import { WalletCounter } from "@/components/wallet-counter"
+
 import { NetworkStatsViewer } from "@/components/network-stats-viewer"
 import Image from "next/image"
 import Link from "next/link"
@@ -54,8 +55,8 @@ export default function CloutContractsApp() {
     <div className="min-h-screen bg-background minimal-grid">
       <header className="border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+          <div className="flex items-center justify-between w-full gap-4">
+            <div className="flex items-center gap-3 sm:gap-4 flex-shrink min-w-0">
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center subtle-glow flex-shrink-0">
                 <Image
                   src="/favicon.png"
@@ -71,13 +72,13 @@ export default function CloutContractsApp() {
                     CloutContracts
                   </span>
                 </h1>
-                <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Next-Gen Web3 Platform</p>
+                <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block lg:hidden xl:block">Next-Gen Web3 Platform</p>
               </div>
             </div>
 
-            <nav className="hidden lg:flex items-center gap-4 xl:gap-6">
+            <nav className="hidden lg:flex items-center gap-3 xl:gap-5 flex-shrink-0">
               <a
-                href="https://discord.gg/cloutcontracts"
+                href="https://discord.gg/nuNTfQXBN6"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 text-sm"
@@ -109,13 +110,20 @@ export default function CloutContractsApp() {
                 <Mail className="w-4 h-4" />
                 Newsletter
               </Link>
-              <a
-                href="#applications"
+              <Link
+                href="/bridge"
+                className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 text-sm"
+              >
+                <ArrowDownUp className="w-4 h-4" />
+                Bridge
+              </Link>
+              <Link
+                href="/#applications"
                 className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 text-sm"
               >
                 <Settings className="w-4 h-4" />
                 Apps
-              </a>
+              </Link>
             </nav>
 
             <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
@@ -157,7 +165,7 @@ export default function CloutContractsApp() {
                 </div>
 
                 <a
-                  href="https://discord.gg/cloutcontracts"
+                  href="https://discord.gg/nuNTfQXBN6"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 text-sm py-2"
@@ -184,18 +192,28 @@ export default function CloutContractsApp() {
                 </a>
                 <Link
                   href="/newsletter"
+                  onClick={() => setIsMobileMenuOpen(false)}
                   className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 text-sm py-2"
                 >
                   <Mail className="w-4 h-4" />
                   Newsletter
                 </Link>
-                <a
-                  href="#applications"
+                <Link
+                  href="/bridge"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 text-sm py-2"
+                >
+                  <ArrowDownUp className="w-4 h-4" />
+                  Bridge
+                </Link>
+                <Link
+                  href="/#applications"
+                  onClick={() => setIsMobileMenuOpen(false)}
                   className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 text-sm py-2"
                 >
                   <Settings className="w-4 h-4" />
                   Apps
-                </a>
+                </Link>
                 {isConnected && (
                   <div className="flex flex-col gap-2 pt-2 border-t border-border/50">
                     <Badge variant="secondary" className="bg-accent/10 text-accent border-accent/20 text-xs w-fit">
@@ -215,7 +233,7 @@ export default function CloutContractsApp() {
       </header>
 
       <a
-        href="https://wefunder.com/riecomp"
+        href="https://wefunder.com/riecomp/" // Updated link from Netcapital to Wefunder
         target="_blank"
         rel="noopener noreferrer"
         className="block w-full"
@@ -266,10 +284,11 @@ export default function CloutContractsApp() {
                 <iframe
                   width="100%"
                   height="100%"
-                  src="https://www.youtube.com/embed/oAUSVFjcyy8"
+                  src="https://www.youtube-nocookie.com/embed/oAUSVFjcyy8?vq=hd1080&modestbranding=1&rel=0"
                   title="CloutContracts Trailer"
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
                   allowFullScreen
                   className="w-full h-full"
                 ></iframe>
@@ -277,14 +296,9 @@ export default function CloutContractsApp() {
             </div>
           </div>
 
-          <div className="max-w-6xl mx-auto">
-            <h3 className="text-2xl sm:text-3xl font-semibold mb-8 sm:mb-12 text-center">Network Statistics</h3>
-            <WalletCounter />
-          </div>
-
           <div className="max-w-7xl mx-auto">
             <h3 className="text-2xl sm:text-3xl font-semibold mb-8 sm:mb-12 text-center">
-              Multi-Chain Network Overview
+              Network Overview
             </h3>
             <NetworkStatsViewer />
           </div>
@@ -400,7 +414,7 @@ export default function CloutContractsApp() {
             </div>
           </div>
 
-          <div id="applications" className="max-w-6xl mx-auto">
+          <div id="applications" className="max-w-6xl mx-auto scroll-mt-24">
             <h3 className="text-2xl sm:text-3xl font-semibold mb-8 sm:mb-12 text-center">Official Applications</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
               {[
@@ -570,7 +584,7 @@ export default function CloutContractsApp() {
               {[
                 { name: "GitHub", href: "https://github.com/CloutContracts" },
                 { name: "Twitter", href: "https://twitter.com/_CloutContracts" },
-                { name: "Discord", href: "https://discord.gg/cloutcontracts" },
+                { name: "Discord", href: "https://discord.gg/nuNTfQXBN6" },
                 { name: "Telegram", href: "https://t.me/cloutcontracts" },
                 { name: "Statistics", href: "https://dune.com/cloutcontracts/dashboard" },
               ].map((link) => (
@@ -589,7 +603,7 @@ export default function CloutContractsApp() {
 
           <div className="border-t border-border mt-6 sm:mt-8 pt-6 sm:pt-8 text-center space-y-3 sm:space-y-4">
             <p className="text-xs sm:text-sm text-muted-foreground">
-              © Copyright 2025 CloutContracts - All Rights Reserved
+              © Copyright 2026 CloutContracts - All Rights Reserved
             </p>
             <p className="text-xs sm:text-sm text-muted-foreground px-4">
               Please consider this experimental. We aren't soliciting financial advice. Any actions you decide to do are

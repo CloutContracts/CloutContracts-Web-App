@@ -13,15 +13,15 @@ const ADMIN_ADDRESS = "0x0D81d9E21BD7C5bB095535624DcB0759E64B3899"
 const TOKEN_OWNER_ADDRESS = "0x0D81d9E21BD7C5bB095535624DcB0759E64B3899"
 
 const CLOUT_CONTRACTS_NETWORK = {
-  chainId: "0x539", // 1337 in hex
+  chainId: "0xC", // 12 in hex
   chainName: "CloutContracts Network",
   nativeCurrency: {
-    name: "CloutContracts",
+    name: "CCS",
     symbol: "CCS",
     decimals: 18,
   },
   rpcUrls: ["https://evm.cloutcontracts.net"],
-  blockExplorerUrls: ["https://explorer.cloutcontracts.net"],
+  blockExplorerUrls: ["https://blocks.cloutcontracts.net"],
 }
 
 interface AuthContextType {
@@ -166,23 +166,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     try {
-      console.log("[v0] Adding CloutContracts network to MetaMask")
+      console.log("[v0] Connecting to CloutContracts network")
 
-      // Add CloutContracts network to MetaMask
+      // First try to switch to the network (in case it already exists)
       try {
         await window.ethereum.request({
-          method: "wallet_addEthereumChain",
-          params: [CLOUT_CONTRACTS_NETWORK],
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: CLOUT_CONTRACTS_NETWORK.chainId }],
         })
-      } catch (addError: any) {
-        // Network might already exist, try to switch to it
-        if (addError.code === 4902) {
+      } catch (switchError: any) {
+        // If network doesn't exist (4902), add it
+        if (switchError.code === 4902) {
+          console.log("[v0] Network not found, adding CloutContracts network")
           await window.ethereum.request({
-            method: "wallet_switchEthereumChain",
-            params: [{ chainId: CLOUT_CONTRACTS_NETWORK.chainId }],
+            method: "wallet_addEthereumChain",
+            params: [CLOUT_CONTRACTS_NETWORK],
           })
+        } else if (switchError.code === 4001) {
+          // User rejected the switch
+          throw new Error("Network switch rejected by user")
         } else {
-          throw addError
+          throw switchError
         }
       }
 

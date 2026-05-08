@@ -57,20 +57,19 @@ const CONTRACT_ABI = [
 
 export async function GET(request: NextRequest) {
   try {
+    // Use RPC endpoints that don't have rate limits or Cloudflare protection
     const rpcEndpoints = [
-      "https://eth.llamarpc.com",
       "https://rpc.ankr.com/eth",
-      "https://ethereum.publicnode.com",
+      "https://ethereum-rpc.publicnode.com",
+      "https://eth.drpc.org",
       "https://cloudflare-eth.com",
-      "https://eth-mainnet.public.blastapi.io",
+      "https://rpc.mevblocker.io",
     ]
 
     let lastError = null
 
     for (const rpcUrl of rpcEndpoints) {
       try {
-        console.log(`[v0] Trying RPC endpoint: ${rpcUrl}`)
-
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
 
@@ -119,19 +118,18 @@ export async function GET(request: NextRequest) {
 
         clearTimeout(timeoutId)
 
+        // Check for rate limiting or other HTTP errors
         if (!balanceResponse.ok || !totalSupplyResponse.ok) {
-          console.log(`[v0] HTTP error for ${rpcUrl}: ${balanceResponse.status}, ${totalSupplyResponse.status}`)
+          const status = !balanceResponse.ok ? balanceResponse.status : totalSupplyResponse.status
+          // Skip this endpoint and try the next one
+          lastError = new Error(`HTTP ${status}`)
           continue
         }
 
         const balanceResult = await balanceResponse.json()
         const totalSupplyResult = await totalSupplyResponse.json()
 
-        console.log(`[v0] Balance result:`, balanceResult)
-        console.log(`[v0] Total supply result:`, totalSupplyResult)
-
         if (balanceResult.error || totalSupplyResult.error) {
-          console.log(`[v0] RPC error for ${rpcUrl}:`, balanceResult.error || totalSupplyResult.error)
           continue
         }
 
@@ -141,8 +139,6 @@ export async function GET(request: NextRequest) {
         // Convert directly to numbers - these are token amounts, not wei
         const adminBalance = Number(adminBalanceWei)
         const totalSupply = Number(totalSupplyWei)
-
-        console.log(`[v0] Calculated values - Total: ${totalSupply}, Admin: ${adminBalance}`)
 
         // Calculate circulating supply
         const circulatingSupply = Math.max(0, totalSupply - adminBalance)
@@ -158,7 +154,6 @@ export async function GET(request: NextRequest) {
           rpcEndpoint: rpcUrl,
         })
       } catch (error: any) {
-        console.log(`[v0] Error with ${rpcUrl}:`, error.message)
         lastError = error
         continue
       }
@@ -166,7 +161,6 @@ export async function GET(request: NextRequest) {
 
     throw new Error(`All RPC endpoints failed. Last error: ${lastError?.message}`)
   } catch (error: any) {
-    console.error("[v0] Error calculating circulating supply:", error)
 
     const estimatedCirculating = 50000000 // Estimate 50M tokens circulating as fallback
 

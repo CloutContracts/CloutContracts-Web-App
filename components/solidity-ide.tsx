@@ -32,13 +32,12 @@ const DEFAULT_CONTRACT = `// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 contract HelloWorld {
-    string public message;
+    string public message = "Hello, CloutContracts!";
     address public owner;
     
     event MessageChanged(string newMessage, address changedBy);
     
-    constructor(string memory _message) {
-        message = _message;
+    constructor() {
         owner = msg.sender;
     }
     
@@ -62,10 +61,11 @@ const CONTRACT_TEMPLATES = {
 pragma solidity ^0.8.0;
 
 contract ERC20Token {
-    string public name;
-    string public symbol;
-    uint8 public decimals;
+    string public name = "My Token";
+    string public symbol = "MTK";
+    uint8 public decimals = 18;
     uint256 public totalSupply;
+    address public owner;
     
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
@@ -73,17 +73,14 @@ contract ERC20Token {
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
     
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        uint8 _decimals,
-        uint256 _totalSupply
-    ) {
-        name = _name;
-        symbol = _symbol;
-        decimals = _decimals;
-        totalSupply = _totalSupply * 10**_decimals;
+    // No constructor arguments needed - edit the name, symbol, decimals above
+    // and the initial supply below before deploying
+    constructor() {
+        owner = msg.sender;
+        uint256 initialSupply = 1000000; // 1 million tokens
+        totalSupply = initialSupply * 10**decimals;
         balanceOf[msg.sender] = totalSupply;
+        emit Transfer(address(0), msg.sender, totalSupply);
     }
     
     function transfer(address _to, uint256 _value) public returns (bool) {
@@ -117,9 +114,11 @@ contract ERC20Token {
 pragma solidity ^0.8.0;
 
 contract ERC721NFT {
-    string public name;
-    string public symbol;
+    // Edit these values before deploying
+    string public name = "My NFT Collection";
+    string public symbol = "MNFT";
     uint256 public totalSupply;
+    address public contractOwner;
     
     mapping(uint256 => address) public ownerOf;
     mapping(address => uint256) public balanceOf;
@@ -130,9 +129,8 @@ contract ERC721NFT {
     event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId);
     event ApprovalForAll(address indexed owner, address indexed operator, bool approved);
     
-    constructor(string memory _name, string memory _symbol) {
-        name = _name;
-        symbol = _symbol;
+    constructor() {
+        contractOwner = msg.sender;
     }
     
     function mint(address _to, uint256 _tokenId) public {
@@ -218,19 +216,23 @@ contract MultiSigWallet {
         _;
     }
     
-    constructor(address[] memory _owners, uint256 _required) {
-        require(_owners.length > 0, "Owners required");
-        require(_required > 0 && _required <= _owners.length, "Invalid required number");
-        
-        for (uint256 i = 0; i < _owners.length; i++) {
-            address owner = _owners[i];
-            require(owner != address(0), "Invalid owner");
-            require(!isOwner[owner], "Owner not unique");
-            
-            isOwner[owner] = true;
-            owners.push(owner);
-        }
-        
+    // Deploys with msg.sender as the only owner, requiring 1 signature
+    // Use addOwner() to add more owners after deployment
+    constructor() {
+        owners.push(msg.sender);
+        isOwner[msg.sender] = true;
+        required = 1;
+    }
+    
+    function addOwner(address _owner) public onlyOwner {
+        require(_owner != address(0), "Invalid owner");
+        require(!isOwner[_owner], "Owner already exists");
+        owners.push(_owner);
+        isOwner[_owner] = true;
+    }
+    
+    function setRequired(uint256 _required) public onlyOwner {
+        require(_required > 0 && _required <= owners.length, "Invalid required number");
         required = _required;
     }
     
@@ -307,6 +309,8 @@ export function SolidityIDE() {
   const [isMetaMaskConnected, setIsMetaMaskConnected] = useState(false)
   const [metaMaskAccount, setMetaMaskAccount] = useState<string>("")
   const [isClient, setIsClient] = useState(false)
+  const [constructorArgs, setConstructorArgs] = useState<Record<string, string>>({})
+  const [constructorParams, setConstructorParams] = useState<{name: string, type: string}[]>([])
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const { toast } = useToast()
@@ -324,18 +328,18 @@ export function SolidityIDE() {
           if (accounts.length > 0) {
             setIsMetaMaskConnected(true)
             setMetaMaskAccount(accounts[0])
-            console.log("[v0] MetaMask connected:", accounts[0])
+            
           } else {
             setIsMetaMaskConnected(false)
             setMetaMaskAccount("")
-            console.log("[v0] MetaMask not connected")
+            
           }
         } catch (error) {
-          console.log("[v0] MetaMask check failed:", error)
+          
           setIsMetaMaskConnected(false)
         }
       } else {
-        console.log("[v0] MetaMask not detected")
+        
         setIsMetaMaskConnected(false)
       }
     }
@@ -347,11 +351,11 @@ export function SolidityIDE() {
         if (accounts.length > 0) {
           setIsMetaMaskConnected(true)
           setMetaMaskAccount(accounts[0])
-          console.log("[v0] MetaMask account changed:", accounts[0])
+          
         } else {
           setIsMetaMaskConnected(false)
           setMetaMaskAccount("")
-          console.log("[v0] MetaMask disconnected")
+          
         }
       })
     }
@@ -453,7 +457,13 @@ export function SolidityIDE() {
 
       let result: CompilationResult
 
-      addToConsole(`🔧 Using local compilation`, "info")
+      addToConsole(`🔧 Compiling with Solidity compiler (solc)...`, "info")
+
+      // Extract pragma version from source
+      const pragmaMatch = activeFile.content.match(/pragma\s+solidity\s+[\^~]?([0-9.]+)/)
+      const solcVersion = pragmaMatch ? pragmaMatch[1] : "0.8.19"
+      
+      addToConsole(`📦 Using Solidity version: ${solcVersion}`, "info")
 
       const response = await fetch("/api/contracts/compile", {
         method: "POST",
@@ -463,6 +473,9 @@ export function SolidityIDE() {
         body: JSON.stringify({
           source: activeFile.content,
           filename: activeFile.name,
+          version: solcVersion,
+          optimization: true,
+          evmVersion: "paris", // Compatible with most EVM networks
         }),
       })
 
@@ -475,17 +488,25 @@ export function SolidityIDE() {
       setCompilationResult(result)
 
       if (result.success) {
-        addToConsole(`✅ Local compilation successful for ${activeFile.name}`, "success")
+        const bytecodeSize = result.bytecode ? (result.bytecode.length - 2) / 2 : 0 // -2 for 0x prefix, /2 for hex to bytes
+        addToConsole(`✅ Compilation successful for ${activeFile.name}`, "success")
+        addToConsole(`📊 Bytecode size: ${bytecodeSize} bytes`, "info")
+        if (result.gasEstimate) {
+          addToConsole(`⛽ Estimated deployment gas: ${result.gasEstimate.toLocaleString()}`, "info")
+        }
+        if (result.abi) {
+          addToConsole(`📋 ABI generated with ${result.abi.length} entries`, "info")
+        }
 
         if (result.warnings?.length) {
           result.warnings.forEach((warning: string) => {
-            addToConsole(`⚠️ Warning: ${warning}`, "info")
+            addToConsole(`⚠️ ${warning}`, "info")
           })
         }
       } else {
         addToConsole(`❌ Compilation failed for ${activeFile.name}`, "error")
         result.errors?.forEach((error: string) => {
-          addToConsole(`Error: ${error}`, "error")
+          addToConsole(`${error}`, "error")
         })
       }
     } catch (error: any) {
@@ -497,8 +518,6 @@ export function SolidityIDE() {
   }
 
   const deployContract = async () => {
-    console.log("[v0] Deploy button clicked")
-
     if (!compilationResult?.success) {
       addToConsole("❌ Please compile the contract first", "error")
       return
@@ -526,7 +545,6 @@ export function SolidityIDE() {
           return
         }
       } catch (error: any) {
-        console.log("[v0] MetaMask connection error:", error)
         addToConsole(`❌ MetaMask connection failed: ${error.message}`, "error")
         return
       }
@@ -536,17 +554,136 @@ export function SolidityIDE() {
     addToConsole("🚀 Starting deployment to CloutContracts network...", "info")
 
     try {
-      const contractAddress = `0x${Math.random().toString(16).substr(2, 40)}`
-
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
-      setDeployedContract(contractAddress)
-      addToConsole(`✅ Contract deployed successfully!`, "success")
-      addToConsole(`📍 Contract Address: ${contractAddress}`, "info")
-      addToConsole(`🔗 Network: CloutContracts Testnet`, "info")
+      const ethereum = window.ethereum as any
+      
+      // CloutContracts Network configuration
+      const CCS_NETWORK = {
+        chainId: "0xC", // 12 in hex
+        chainName: "CloutContracts Network",
+        nativeCurrency: { name: "CCS", symbol: "CCS", decimals: 18 },
+        rpcUrls: ["https://evm.cloutcontracts.net"],
+        blockExplorerUrls: ["https://blocks.cloutcontracts.net"],
+      }
+      
+      // Check and switch to CloutContracts network
+      const currentChainId = await ethereum.request({ method: "eth_chainId" })
+      if (currentChainId.toLowerCase() !== CCS_NETWORK.chainId.toLowerCase()) {
+        addToConsole("🔄 Switching to CloutContracts network...", "info")
+        try {
+          await ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: CCS_NETWORK.chainId }],
+          })
+        } catch (switchError: any) {
+          if (switchError.code === 4902) {
+            addToConsole("📝 Adding CloutContracts network to wallet...", "info")
+            await ethereum.request({
+              method: "wallet_addEthereumChain",
+              params: [CCS_NETWORK],
+            })
+          } else if (switchError.code === 4001) {
+            throw new Error("User rejected network switch")
+          } else {
+            throw switchError
+          }
+        }
+      }
+      
+      addToConsole("📝 Preparing contract deployment transaction...", "info")
+      
+      // Prepare the deployment transaction
+      let bytecode = compilationResult.bytecode?.startsWith("0x") 
+        ? compilationResult.bytecode 
+        : `0x${compilationResult.bytecode}`
+      
+      // Check if contract has a constructor with arguments
+      const abi = compilationResult.abi || []
+      const constructor = abi.find((item: any) => item.type === "constructor")
+      
+      if (constructor && constructor.inputs && constructor.inputs.length > 0) {
+        addToConsole(`⚠️ Contract has constructor with ${constructor.inputs.length} argument(s)`, "info")
+        addToConsole(`Constructor args: ${constructor.inputs.map((i: any) => `${i.name}: ${i.type}`).join(", ")}`, "info")
+        // For now, we'll try deploying without args - user should ensure contract doesn't require args
+        // or provide default values in the contract
+      }
+      
+      // Estimate gas first
+      let gasLimit = 5000000 // Default to 5M gas
+      try {
+        const estimatedGas = await ethereum.request({
+          method: "eth_estimateGas",
+          params: [{
+            from: metaMaskAccount,
+            data: bytecode,
+          }],
+        })
+        // Add 20% buffer to estimated gas
+        gasLimit = Math.floor(parseInt(estimatedGas, 16) * 1.2)
+        addToConsole(`⛽ Estimated gas: ${gasLimit.toLocaleString()}`, "info")
+      } catch (gasError: any) {
+        addToConsole(`⚠️ Gas estimation failed, using default: ${gasLimit.toLocaleString()}`, "info")
+        // If gas estimation fails, the deployment will likely fail too
+        // but we'll try anyway with a high gas limit
+      }
+      
+      // Send deployment transaction via MetaMask
+      const txHash = await ethereum.request({
+        method: "eth_sendTransaction",
+        params: [{
+          from: metaMaskAccount,
+          data: bytecode,
+          gas: "0x" + gasLimit.toString(16),
+        }],
+      })
+      
+      addToConsole(`📤 Transaction sent: ${txHash}`, "info")
+      addToConsole("⏳ Waiting for confirmation...", "info")
+      
+      // Poll for transaction receipt to get contract address
+      let receipt = null
+      let attempts = 0
+      while (!receipt && attempts < 60) {
+        await new Promise(resolve => setTimeout(resolve, 2000))
+        try {
+          receipt = await ethereum.request({
+            method: "eth_getTransactionReceipt",
+            params: [txHash],
+          })
+        } catch {
+          // Continue polling
+        }
+        attempts++
+      }
+      
+      if (receipt) {
+        // Check if transaction succeeded
+        if (receipt.status === "0x0") {
+          addToConsole(`❌ Transaction failed (reverted)`, "error")
+          addToConsole(`This usually means:`, "error")
+          addToConsole(`  - Constructor requires arguments that weren't provided`, "error")
+          addToConsole(`  - Contract code has a require/revert in constructor`, "error")
+          addToConsole(`  - Insufficient gas for deployment`, "error")
+          addToConsole(`📤 Transaction Hash: ${txHash}`, "info")
+        } else if (receipt.contractAddress) {
+          setDeployedContract(receipt.contractAddress)
+          addToConsole(`✅ Contract deployed successfully!`, "success")
+          addToConsole(`📍 Contract Address: ${receipt.contractAddress}`, "info")
+          addToConsole(`🔗 View on Explorer: https://blocks.cloutcontracts.net/address/${receipt.contractAddress}`, "info")
+        } else {
+          addToConsole(`✅ Transaction confirmed but no contract address returned`, "info")
+          addToConsole(`📤 Transaction Hash: ${txHash}`, "info")
+        }
+      } else {
+        addToConsole(`⏳ Transaction pending. Check explorer for status.`, "info")
+        addToConsole(`📤 Transaction Hash: ${txHash}`, "info")
+      }
     } catch (error: any) {
-      console.log("[v0] Deployment error:", error)
-      addToConsole(`❌ Deployment failed: ${error.message}`, "error")
+      
+      if (error.code === 4001) {
+        addToConsole(`❌ Transaction rejected by user`, "error")
+      } else {
+        addToConsole(`❌ Deployment failed: ${error.message}`, "error")
+      }
     } finally {
       setIsDeploying(false)
     }
